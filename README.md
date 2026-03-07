@@ -31,7 +31,7 @@ pip install --upgrade torch torchvision diffusers accelerate safetensors matplot
 Model ağırlıkları ve yapılandırma dosyası GitHub limitleri nedeniyle dış bağlantıda tutulmaktadır. 
 
 1. Aşağıdaki linkten klasörü indirin:
-   🔗 **[MODEL VE CONFIG İNDİRME LİNKİ BURAYA GELECEK]**
+   🔗 **https://drive.google.com/drive/folders/1YDv4ZsRLtXzEUwKqpM0cVl9vSkw1_Yc2**
 2. İndirdiğiniz `final_botanic_model.safetensors` ve `botanical_final.json` dosyalarını projenizin dizinine yerleştirin.
 3. Kod içerisindeki `yapilandirma_yolu` ve `model_agirlik_yolu` değişkenlerini kendi dosya yolunuza göre güncelleyin.
 
