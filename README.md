@@ -1,81 +1,71 @@
-# Botanical Diffusion: Tesla T4 ile 128x128 Çiçek Üretimi
+# Botanical Diffusion Pro: Tesla T4 Optimize Edilmiş Çiçek Üretimi
 
-Bu proje, NVIDIA Tesla T4 GPU üzerinde kısıtlı kaynaklarla yüksek çözünürlüklü (128x128) ve profesyonel kalitede botanik görseller üretmek için geliştirildi. Flowers102 veri seti üzerinde eğitilen model, bellek optimizasyon teknikleri sayesinde 16GB VRAM'in altında oldukça verimli bir performans sergilemektedir. 🌸
+Bu proje, kısıtlı donanım kaynaklarıyla (NVIDIA Tesla T4) yüksek kalitede botanik görseller üretmek amacıyla geliştirilmiş bir Diffusion modelidir. Standart modellerin aksine 128x128 native çözünürlükte eğitilmiş ve Gradio tabanlı modern bir kullanıcı arayüzüyle desteklenmiştir. 
 
-## Öne Çıkanlar
+Model, eğitim sırasında `bitsandbytes` 8-bit optimizer kullanarak bellek verimliliğini maksimize etmiş, üretim aşamasında ise DDIM zamanlayıcı ve post-processing (keskinleştirme/kontrast) teknikleriyle görsel kaliteyi 512x512 seviyesine taşımıştır.
 
-*   **Yüksek Çözünürlük:** Standart düşük çözünürlüklü modeller yerine, 128x128 native çözünürlük ile daha detaylı dokular.
-*   **Bellek Dostu Mimari:** 8-bit optimizer kullanarak yaklaşık 10GB VRAM kullanımı ile Tesla T4 üzerinde stabil çalışma.
-*   **Hızlı Eğitim:** Eğitim aşamasında saniyede ~1.25 iterasyon (it/s) hızına ulaşan optimize edilmiş döngü.
-*   **Düşük FID Skorları:** Kısa sürede 8.11 gibi başarılı FID değerlerine ulaşan hızlı öğrenme kapasitesi.
+## Öne Çıkan Özellikler
 
-## Donanım ve Performans Bilgileri
+*   **Gelişmiş UNet Mimarisi:** 128x128 çözünürlükte detay kaybını önleyen derin katman yapısı.
+*   **Hızlı ve Verimli:** DDIM Scheduler sayesinde 100-120 adımda keskin ve kaliteli sonuçlar.
+*   **Kullanıcı Dostu Arayüz:** Gradio üzerinden canlı parametre kontrolü (Seed, Steps, Keskinlik, Kontrast).
+*   **Post-Processing:** Üretilen görselleri otomatik olarak 512x512 boyutuna ölçekleyen ve fotoğraf kalitesini artıran filtreler.
 
-Modelin eğitimi sırasında kullanılan sistem verileri ve kaynak tüketimi şu şekildedir:
+## Donanım ve Performans Verileri
 
-*   **GPU:** NVIDIA Tesla T4
-*   **CUDA Sürümü:** 13.0
-*   **Sürücü Versiyonu:** 580.82.07
-*   **VRAM Kullanımı:** ~9950 MiB (Belleğin yaklaşık %65'i aktif kullanıldı)
-*   **Eğitim Hızı:** Her epoch ortalama 50 saniye sürmektedir.
+Eğitim sürecinde Tesla T4 GPU üzerinde elde edilen veriler şu şekildedir:
+*   **VRAM Kullanımı:** ~9.9 GB (8-bit optimizasyon ile).
+*   **Eğitim Hızı:** ~1.25 it/s.
+*   **En İyi FID Skoru:** 4.07 (31. Epoch).
 
 ## Kurulum
 
-Projeyi kendi ortamınızda çalıştırmak için gerekli kütüphaneleri yükleyin:
+Projeyi çalıştırmak için gerekli kütüphaneleri aşağıdaki komutla yükleyebilirsiniz:
 
 ```bash
-pip install torch torchvision diffusers accelerate bitsandbytes torchmetrics tqdm pillow matplotlib
+pip install --upgrade torch torchvision diffusers accelerate safetensors matplotlib pillow bitsandbytes gradio
 ```
 
-## Kullanım
+## Model Dosyalarını Edinme
 
-Model dosyaları 25MB sınırını aştığı için harici bir link üzerinden sunulmaktadır.
+Model ağırlıkları ve yapılandırma dosyası GitHub limitleri nedeniyle dış bağlantıda tutulmaktadır. 
 
-**1. Modeli İndirin**
-Aşağıdaki linkten model klasörünü indirip projenizin ana dizinine `t4_photo_pro_model` ismiyle kaydedin:
+1. Aşağıdaki linkten klasörü indirin:
+   🔗 **[MODEL VE CONFIG İNDİRME LİNKİ BURAYA GELECEK]**
+2. İndirdiğiniz `final_botanic_model.safetensors` ve `botanical_final.json` dosyalarını projenizin dizinine yerleştirin.
+3. Kod içerisindeki `yapilandirma_yolu` ve `model_agirlik_yolu` değişkenlerini kendi dosya yolunuza göre güncelleyin.
 
-🔗 **[https://drive.google.com/drive/folders/1CxsTPksKvDzpzd6weBpO1ywbWi_xQW9J?usp=sharing]**
+## Kullanım ve Arayüz
 
-**2. Görsel Üretimini Başlatın**
-Eğitilmiş ağırlıkları kullanarak görsel üretmek için şu kodu kullanabilirsiniz:
+Modeli başlatmak için hazırlanan scripti çalıştırdığınızda yerel ağınızda bir web arayüzü oluşacaktır.
 
 ```python
-from diffusers import DDPMPipeline, DDIMScheduler
-import torch
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-# Modeli yükle
-model_yolu = "./t4_photo_pro_model"
-pipe = DDPMPipeline.from_pretrained(model_yolu, torch_dtype=torch.float16).to(device)
-pipe.scheduler = DDIMScheduler.from_config(pipe.scheduler.config)
-
-# Üretim (Inference)
-with torch.no_grad():
-    image = pipe(num_inference_steps=100).images[0]
-    image.save("botanik_cicek.png")
-    image.show()
+python app.py
 ```
 
-## Eğitim Süreci ve Metrikler
+### Arayüz Parametreleri
+*   **Seed:** Görselin temel formunu belirler. Aynı sayı ile aynı görseli tekrar üretebilirsiniz.
+*   **Üretim Adımı (Steps):** Modelin görseli oluşturma süresi. 100-120 adım arası en dengeli sonuçları verir.
+*   **Keskinlik Seviyesi:** Upscale sonrası oluşan yumuşaklığı giderir, detayları belirginleştirir.
+*   **Kontrast Oranı:** Görselin renk doygunluğunu ve derinliğini profesyonel fotoğraf seviyesine çeker.
 
-Eğitim sırasında her epoch sonunda hesaplanan FID (Frechet Inception Distance) skorları, modelin görsel kalitesindeki artışı belgelemektedir. FID skoru düştükçe modelin ürettiği görseller gerçeğe daha fazla yaklaşmaktadır.
+## Eğitim Günlüğü
 
-| Epoch | Loss (Kayıp) | FID Skoru |
+Eğitim sürecindeki FID (Frechet Inception Distance) skorları modelin gelişimini göstermektedir:
+
+| Epoch | FID Skoru | Durum |
 | :--- | :--- | :--- |
-| Epoch 0 | 0.0915 | 28.2811 |
-| Epoch 1 | 0.0821 | 15.0218 |
-| Epoch 2 | 0.0470 | 14.1721 |
-| **Epoch 3** | **0.1230** | **8.1103** |
-
-*Eğitim boyunca ortalama kayıp (loss) değerleri 0.04 ile 0.10 arasında stabilize olmuştur.*
+| 0 | 28.28 | Başlangıç |
+| 15 | 6.24 | Formlar belirginleşti |
+| **31** | **4.07** | **En yüksek kalite** |
+| 73 | 5.52 | Doygunluk artışı |
 
 ## Dosya Yapısı
 
-*   `train.py`: Tesla T4 optimizasyonlu eğitim scripti.
-*   `inference.py`: Görsel üretimi ve iyileştirme arayüzü.
-*   `t4_photo_pro_model/`: Eğitilmiş model dosyaları (Config, UNet ağırlıkları).
+*   `app.py`: Gradio arayüzünü başlatan ana dosya.
+*   `botanical_final.json`: UNet model mimarisi yapılandırması.
+*   `final_botanic_model.safetensors`: Eğitilmiş ağırlık dosyası.
 
 ---
-**Geliştirici:** [Yusuf Cidik]
-Projeyle ilgili sorularınız için bir Issue açabilir veya iletişime geçebilirsiniz.
+**Geliştirici:** [Adın Soyadın]
+Sorularınız veya katkılarınız için Issue üzerinden iletişime geçebilirsiniz.
